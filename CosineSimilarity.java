@@ -4,6 +4,7 @@ package edu.asu.irs13;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -25,7 +26,6 @@ import org.apache.lucene.store.FSDirectory;
 public class CosineSimilarity {
 	static HashMap<Integer, Double> SimilarityMap = new HashMap<Integer, Double>();
 	static HashMap<String, Double> idfMap = new HashMap<String, Double>();
-
 	// function to calculate idf of each term and store it in tdfMap
 	public void calcIdf() {
 		IndexReader r;
@@ -65,6 +65,7 @@ public class CosineSimilarity {
 		double dotprod = 0.0;
 
 		Iterator qit = PageRankMain.queryMap.entrySet().iterator();
+		
 		//calculating query norm
 		while (qit.hasNext()) {
 			Map.Entry pair = (Entry) qit.next();
@@ -85,13 +86,13 @@ public class CosineSimilarity {
 			SimilarityMap.put((Integer) pair.getKey(), sim);
 
 		}
-		System.out.println("Total Docs found : " + SimilarityMap.size());
+	//	System.out.println("Total Docs found : " + SimilarityMap.size());
 
 		//sorting
 		
 		long startTime = System.nanoTime();
 		startTime = startTime / 1000000;
-		System.out.println("Start time :" + startTime);
+	//	System.out.println("Start time :" + startTime);
 		List list = new LinkedList(SimilarityMap.entrySet());
 		Collections.sort(list, new Comparator() {
 			public int compare(Object o1, Object o2) {
@@ -106,18 +107,21 @@ public class CosineSimilarity {
 		}
 		long endTime = System.nanoTime();
 		endTime = endTime / 1000000;
-		System.out.println("End time :" + endTime);
+		//System.out.println("End time :" + endTime);
 		long totTime = endTime - startTime;
-		System.out.println("Sorting time: " + totTime);
+		//System.out.println("Sorting time: " + totTime);
 		Iterator sorted = sortedHashMap.entrySet().iterator();
 		int i = 0;
 
-		while (sorted.hasNext() && i < 101) {
+		while (sorted.hasNext() && i < 10) {
 			i++;
 			Map.Entry pair = (Entry) sorted.next();
-			System.out.println(pair.getKey());// + pair.getValue());
-
+			//System.out.println(pair.getKey());// + pair.getValue());
+			
+			//adding top 10 docs to rootset
+            CalcAuthHub.rootSet.add(Integer.parseInt(pair.getKey().toString())); 
 		}
+		System.out.println("******");
 
 	}
 }

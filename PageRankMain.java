@@ -23,6 +23,7 @@ public class PageRankMain {
 
 	public static void calcDotProd(String weightType) {
 		try {
+
 			System.out.println("Weight type - " + weightType);
 			IndexReader r = IndexReader.open(FSDirectory
 					.open(new File("index")));
@@ -75,40 +76,53 @@ public class PageRankMain {
 	}
 
 	public static void main(String[] args) {
+		Scanner sc = new Scanner(System.in);
+		System.out
+				.println("Type 1 for auth/hub and 2 for pagerank, Default is 1");
+		System.out.println("1. auth hub");
+		System.out.println("2. pagerank");
+		int ch = 1;
+		ch = sc.nextInt();
+		sc.nextLine();
+		System.out
+				.println("wait!! doing initial calculations---idf map calculations");
 		CosineSimilarity obj = new CosineSimilarity();
 		obj.calcIdf();
 		String lowestIdfTerm = "";
 		Iterator it = CosineSimilarity.idfMap.entrySet().iterator();
-
-		// This commented part of the code is just to find the term with lowest
-		// idf
-		
-		// double min=1.0;
-		// while (it.hasNext()) {
-		// Map.Entry pair = (Entry) it.next();
-		// if(min>Double.parseDouble(pair.getValue().toString())){
-		// lowestIdfTerm = pair.getKey().toString();
-		// / min=Double.parseDouble(pair.getValue().toString());
-		// }
-
-		// }
-		// System.out.println(lowestIdfTerm +" : : " + min);
-
-		
-		
 		Indexing index = new Indexing();
 		index.fwdIndex();
+		index.calcDi("tf-idf");
+		Calc_PageRank pr = new Calc_PageRank();
+		if (ch == 2) {
 
-		index.calcDi("tf"); //uncomment if tf calculation is required
-	//	index.calcDi("tf-idf"); // comment if tf calculation is required
+			System.out.println("calclating page ranks ");
+			pr.calcPageRank();
+			System.out.println("calculation done");
+		}
+
+		// index.calcDi("tf"); //uncomment if tf calculation is required
+		// comment if tf calculation is required
 
 		// type the query
-		Scanner sc = new Scanner(System.in);
+
 		String query = null;
-		while (!(query = sc.nextLine()).equals("exit")) {
-			System.out.print("Type Query > ");
+
+		while (true) {
+			System.out.print("Query (type exit to discontinue)--> ");
+			query = sc.nextLine();
+			if (query.equals("exit"))
+				break;
+			// System.out.print("Type Query > ");
 			String[] queryArray = query.split("\\s");
 
+			double weight = 0.4;
+			if (ch == 2) {
+				System.out
+						.println("Enter weight for page rank(should be between 0 to 1, default is 0.4)--> ");
+				weight = sc.nextDouble();
+				sc.nextLine();
+			}
 			for (int i = 0; i < queryArray.length; i++) {
 				// put into map the words in query and its count within query
 				if (queryMap.containsKey(queryArray[i])) {
@@ -120,21 +134,23 @@ public class PageRankMain {
 			}
 			long startTime = System.nanoTime();
 			startTime = startTime / 1000000;
-			System.out.println("Start time :" + startTime);
 
-			 calcDotProd("tf"); //uncomment if tf calculation is required
-		//	calcDotProd("tf-idf"); // comment if tf calculation is required
+			// calcDotProd("tf"); //uncomment if tf calculation is required
+			calcDotProd("tf-idf"); // comment if tf calculation is required
 
 			obj.calCosSim();
 
-			long endTime = System.nanoTime();
-			endTime = endTime / 1000000;
-			System.out.println("End time :" + endTime);
-			long totTime = endTime - startTime;
-			System.out.println("Time Taken=" + totTime);
+			CalcAuthHub auth = new CalcAuthHub();
+			if (ch == 1)
+				auth.createLinks();
+
+			if (ch == 2)
+				pr.retrieveTopPages(weight);
+
 			queryMap.clear();
 			docDotProduct.clear();
 			CosineSimilarity.SimilarityMap.clear();
+			Calc_PageRank.rankMap.clear();
 
 		}
 	}
